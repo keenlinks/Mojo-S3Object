@@ -1,0 +1,50 @@
+{
+   "abstract" : "Mojolicious Plugin for basic S3 AWS4 requests.",
+   "author" : [
+      "Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "App::ModuleBuildTiny version 0.014",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Mojolicious-Plugin-S3Request",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "Module::Build::Tiny" : "0.039"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "App::ModuleBuildTiny" : "0.014"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Digest::SHA" : "5.96",
+            "Mojolicious" : "7.26",
+            "perl" : "5.008001"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Exception" : "0.43",
+            "Test::More" : "1.302075"
+         }
+      }
+   },
+   "provides" : {
+      "Mojolicious::Plugin::S3Request" : {
+         "file" : "lib/Mojolicious/Plugin/S3Request.pm",
+         "version" : "0.001"
+      }
+   },
+   "release_status" : "stable",
+   "version" : "0.001",
+   "x_serialization_backend" : "JSON::PP version 2.27300"
+}

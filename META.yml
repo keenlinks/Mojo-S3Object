@@ -1,0 +1,26 @@
+---
+abstract: 'Mojolicious Plugin for basic S3 AWS4 requests.'
+author:
+  - 'Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>'
+build_requires:
+  Test::Exception: '0.43'
+  Test::More: '1.302075'
+configure_requires:
+  Module::Build::Tiny: '0.039'
+dynamic_config: 0
+generated_by: 'App::ModuleBuildTiny version 0.014, CPAN::Meta::Converter version 2.150005'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: Mojolicious-Plugin-S3Request
+provides:
+  Mojolicious::Plugin::S3Request:
+    file: lib/Mojolicious/Plugin/S3Request.pm
+    version: '0.001'
+requires:
+  Digest::SHA: '5.96'
+  Mojolicious: '7.26'
+  perl: '5.008001'
+version: '0.001'
+x_serialization_backend: 'CPAN::Meta::YAML version 0.018'
