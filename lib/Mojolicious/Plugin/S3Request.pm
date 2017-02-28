@@ -1,7 +1,6 @@
 package Mojolicious::Plugin::S3Request;
 
 use Mojo::Base 'Mojolicious::Plugin';
-
 use Digest::SHA qw(hmac_sha256 hmac_sha256_hex sha256_hex);
 use Mojo::Date;
 use Mojo::JSON qw(encode_json);
@@ -232,7 +231,7 @@ Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2016 - Scott Kiehn
+Copyright 2017 - Scott Kiehn
 
 =head1 LICENSE
 

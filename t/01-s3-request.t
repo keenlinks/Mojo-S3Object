@@ -13,4 +13,6 @@ plugin 'Mojolicious::Plugin::S3Request' => {
 my $t = Test::Mojo->new;
 my $c = $t->app->build_controller;
 
+ok( 1 == 1 );
+
 done_testing();
