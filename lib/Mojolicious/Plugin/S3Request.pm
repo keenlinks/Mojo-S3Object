@@ -46,6 +46,7 @@ sub register {
 	$app->helper( 's3.get_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 		my ( $c, $filename ) = @_;
+		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
 		my $date = Mojo::Date->new;
 
 		my $headers = $self->_headers( $date );
@@ -54,7 +55,7 @@ sub register {
 		if ( $cb ) {
 			$self->_loop->delay(
 				sub {
-					$c->ua->get( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers, shift->begin );
+					$c->ua->get( $s3_object => $headers, shift->begin );
 				},
 				sub {
 					my $tx = pop;
@@ -62,7 +63,7 @@ sub register {
 				}
 			)->wait;
 		} else {
-			my $tx = $c->ua->get( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers );
+			my $tx = $c->ua->get( $s3_object => $headers );
 			return $tx->res->code == 200 ? $tx->res : undef;
 		}
 	});
@@ -70,6 +71,7 @@ sub register {
 	$app->helper( 's3.put_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 		my ( $c, $filename, $size, $type, $content ) = @_;
+		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
 		my $date = Mojo::Date->new;
 
 		my $headers = $self->_headers( $date );
@@ -81,7 +83,7 @@ sub register {
 		if ( $cb ) {
 			$self->_loop->delay(
 				sub {
-					$c->ua->put( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers => $content, shift->begin );
+					$c->ua->put( $s3_object => $headers => $content, shift->begin );
 				},
 				sub {
 					my $tx = pop;
@@ -89,7 +91,7 @@ sub register {
 				}
 			)->wait;
 		} else {
-			my $tx = $c->ua->put( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers => $content );
+			my $tx = $c->ua->put( $s3_object => $headers => $content );
 			return $tx->res->code == 200 ? $tx->res : undef;
 		}
 	});
@@ -97,6 +99,7 @@ sub register {
 	$app->helper( 's3.delete_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 		my ( $c, $filename ) = @_;
+		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
 		my $date = Mojo::Date->new;
 
 		my $headers = $self->_headers( $date );
@@ -105,7 +108,7 @@ sub register {
 		if ( $cb ) {
 			$self->_loop->delay(
 				sub {
-					$c->ua->delete( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers, shift->begin );
+					$c->ua->delete( $s3_object => $headers, shift->begin );
 				},
 				sub {
 					my $tx = pop;
@@ -113,26 +116,47 @@ sub register {
 				}
 			)->wait;
 		} else {
-			my $tx = $c->ua->delete( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers );
+			my $tx = $c->ua->delete( $s3_object => $headers );
 			return $tx->res->code == 204 ? $tx->res : undef;
 		}
 	});
 
 	$app->helper( 's3.move_file' => sub {
+		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 		my ( $c, $former_filename, $filename ) = @_;
+		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
 		my $date = Mojo::Date->new;
 
 		my $headers = $self->_headers( $date );
 		$headers->{'x-amz-copy-source'} = $self->{conf}->{bucket} . '/' . $former_filename;
 		$headers->{authorization} = $self->_auth_header( 'PUT', $date, $filename, $headers );
 
-		my $tx = $c->ua->put( $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename => $headers );
-		#say 'PUT: ' . $tx->res->code;
-		#say $tx->res->body;
-
-		$c->s3->delete_file( $former_filename ) if $tx->res->code == 200;
-		return 1 if $tx->res->code == 200;
-		return;
+		if ( $cb ) {
+			$self->_loop->delay(
+				sub {
+					$c->ua->put( $s3_object => $headers, shift->begin );
+				},
+				sub {
+					my ( $delay, $tx ) = @_;
+					$delay->data( tx => $tx );
+					if ( $tx->res->code == 200 ) {
+						$c->s3->delete_file( $former_filename, shift->begin );
+					} else {
+						$delay->pass;
+					}
+				},
+				sub {
+					my ( $delay ) = @_;
+					# Return response code from the put request.
+					# Not going to be concerned with the delete response.
+					return $self->$cb( $delay->data->{tx}->res->code == 200 ? $delay->data->{tx}->res : undef );
+				}
+			)->wait;
+		} else {
+			my $tx = $c->ua->put( $s3_object => $headers );
+			$c->s3->delete_file( $former_filename ) if $tx->res->code == 200;
+			return $tx->res->code == 200 ? $tx->res : undef;
+		}
 	});
 
 	$app->helper( 's3.browser_policy' => sub {
@@ -251,7 +275,7 @@ Mojolicious::Plugin::S3Request - Mojolicious Plugin for basic S3 AWS4 requests.
 
 =head1 VERSION
 
-0.001
+0.002
 
 =head1 SOURCE REPOSITORY
 
