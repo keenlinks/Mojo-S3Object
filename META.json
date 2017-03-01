@@ -4,7 +4,7 @@
       "Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "App::ModuleBuildTiny version 0.014",
+   "generated_by" : "App::ModuleBuildTiny version 0.018",
    "license" : [
       "perl_5"
    ],
@@ -21,7 +21,7 @@
       },
       "develop" : {
          "requires" : {
-            "App::ModuleBuildTiny" : "0.014"
+            "App::ModuleBuildTiny" : "0.018"
          }
       },
       "runtime" : {
