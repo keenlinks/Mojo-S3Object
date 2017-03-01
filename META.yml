@@ -17,10 +17,10 @@ name: Mojolicious-Plugin-S3Request
 provides:
   Mojolicious::Plugin::S3Request:
     file: lib/Mojolicious/Plugin/S3Request.pm
-    version: '0.001'
+    version: '0.002'
 requires:
   Digest::SHA: '5.96'
   Mojolicious: '7.26'
   perl: '5.008001'
-version: '0.001'
+version: '0.002'
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

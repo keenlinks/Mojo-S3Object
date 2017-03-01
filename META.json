@@ -41,10 +41,10 @@
    "provides" : {
       "Mojolicious::Plugin::S3Request" : {
          "file" : "lib/Mojolicious/Plugin/S3Request.pm",
-         "version" : "0.001"
+         "version" : "0.002"
       }
    },
    "release_status" : "stable",
-   "version" : "0.001",
+   "version" : "0.002",
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }
