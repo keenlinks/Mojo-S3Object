@@ -17,7 +17,8 @@ monkey_patch 'Mojo::Date', to_ymdhms => sub {
 	sprintf '%04d%02d%02dT%02d%02d%02dZ', $gmtime[5] + 1900, $gmtime[4] + 1, $gmtime[3], $gmtime[2], $gmtime[1], $gmtime[0];
 };
 
-our $VERSION = '0.002';
+our $VERSION = '0.01_2';
+$VERSION = eval $VERSION;
 
 has ioloop => sub { Mojo::IOLoop->new };
 has aws_auth_alg => 'AWS4-HMAC-SHA256';
@@ -275,7 +276,7 @@ Mojolicious::Plugin::S3Request - Mojolicious Plugin for basic S3 AWS4 requests.
 
 =head1 VERSION
 
-0.002
+0.01_2
 
 =head1 SOURCE REPOSITORY
 
