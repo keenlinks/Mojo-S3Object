@@ -17,8 +17,7 @@ monkey_patch 'Mojo::Date', to_ymdhms => sub {
 	sprintf '%04d%02d%02dT%02d%02d%02dZ', $gmtime[5] + 1900, $gmtime[4] + 1, $gmtime[3], $gmtime[2], $gmtime[1], $gmtime[0];
 };
 
-our $VERSION = '0.01_2';
-$VERSION = eval $VERSION;
+our $VERSION = '0.02_1';
 
 has ioloop => sub { Mojo::IOLoop->new };
 has aws_auth_alg => 'AWS4-HMAC-SHA256';
@@ -40,124 +39,90 @@ sub register {
 	$self->{conf}->{protocol} ||= 'https://';
 	$self->{conf}->{region}   ||= 'us-east-1';
 
-	$app->helper( 's3.bucket_url' => sub {
-		$self->{conf}->{protocol} . $self->_bucket_path . '/';
-	});
+	$app->helper( 's3.bucket_url' => sub { $self->{conf}->{protocol} . $self->_bucket_path . '/' });
 
-	$app->helper( 's3.get_file' => sub {
+	$app->helper( 's3.copy_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-		my ( $c, $filename ) = @_;
-		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
-		my $date = Mojo::Date->new;
+		my ( $c, $former_file, $file ) = @_;
 
-		my $headers = $self->_headers( $date );
-		$headers->{authorization} = $self->_auth_header( 'GET', $date, $filename, $headers );
+		my $headers = $self->_headers( 'PUT', $file, { 'x-amz-copy-source' => $self->{conf}->{bucket} . '/' . $former_file });
 
-		if ( $cb ) {
-			$self->_loop->delay(
-				sub {
-					$c->ua->get( $s3_object => $headers, shift->begin );
-				},
-				sub {
-					my $tx = pop;
-					return $self->$cb( $tx->res->code == 200 ? $tx->res : undef );
-				}
-			)->wait;
-		} else {
-			my $tx = $c->ua->get( $s3_object => $headers );
-			return $tx->res->code == 200 ? $tx->res : undef;
-		}
-	});
+		return $c->ua->put( $self->_object_url( $file ) => $headers )->res->code == 200 ? 'ok' : undef
+			unless $cb;
 
-	$app->helper( 's3.put_file' => sub {
-		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-		my ( $c, $filename, $size, $type, $content ) = @_;
-		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
-		my $date = Mojo::Date->new;
-
-		my $headers = $self->_headers( $date );
-		$headers->{'content-length'} = $size;
-		$headers->{'content-type'} = $type;
-		$headers->{'x-amz-content-sha256'} = sha256_hex( $content );
-		$headers->{authorization} = $self->_auth_header( 'PUT', $date, $filename, $headers );
-
-		if ( $cb ) {
-			$self->_loop->delay(
-				sub {
-					$c->ua->put( $s3_object => $headers => $content, shift->begin );
-				},
-				sub {
-					my $tx = pop;
-					return $self->$cb( $tx->res->code == 200 ? $tx->res : undef );
-				}
-			)->wait;
-		} else {
-			my $tx = $c->ua->put( $s3_object => $headers => $content );
-			return $tx->res->code == 200 ? $tx->res : undef;
-		}
+		$self->_loop->delay(
+			sub {
+				$c->ua->put( $self->_object_url( $file ) => $headers, shift->begin );
+			},
+			sub {
+				return $self->$cb( pop->res->code == 200 ? 'ok' : undef );
+			}
+		)->wait;
 	});
 
 	$app->helper( 's3.delete_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-		my ( $c, $filename ) = @_;
-		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
-		my $date = Mojo::Date->new;
+		my ( $c, $file ) = @_;
 
-		my $headers = $self->_headers( $date );
-		$headers->{authorization} = $self->_auth_header( 'DELETE', $date, $filename, $headers );
+		my $headers = $self->_headers( 'DELETE', $file );
 
-		if ( $cb ) {
-			$self->_loop->delay(
-				sub {
-					$c->ua->delete( $s3_object => $headers, shift->begin );
-				},
-				sub {
-					my $tx = pop;
-					return $self->$cb( $tx->res->code == 200 ? $tx->res : undef );
-				}
-			)->wait;
-		} else {
-			my $tx = $c->ua->delete( $s3_object => $headers );
-			return $tx->res->code == 204 ? $tx->res : undef;
-		}
+		return $c->ua->delete( $self->_object_url( $file ) => $headers )->res->code == 204 ? 'ok' : undef
+			unless $cb;
+
+		$self->_loop->delay(
+			sub {
+				$c->ua->delete( $self->_object_url( $file ) => $headers, shift->begin );
+			},
+			sub {
+				return $self->$cb( pop->res->code == 204 ? 'ok' : undef );
+			}
+		)->wait;
 	});
 
-	$app->helper( 's3.move_file' => sub {
+	$app->helper( 's3.get_file' => sub {
 		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-		my ( $c, $former_filename, $filename ) = @_;
-		my $s3_object = $self->{conf}->{protocol} . $self->_bucket_path . '/' . $filename;
-		my $date = Mojo::Date->new;
+		my ( $c, $file ) = @_;
 
-		my $headers = $self->_headers( $date );
-		$headers->{'x-amz-copy-source'} = $self->{conf}->{bucket} . '/' . $former_filename;
-		$headers->{authorization} = $self->_auth_header( 'PUT', $date, $filename, $headers );
+		my $headers = $self->_headers( 'GET', $file );
 
-		if ( $cb ) {
-			$self->_loop->delay(
-				sub {
-					$c->ua->put( $s3_object => $headers, shift->begin );
-				},
-				sub {
-					my ( $delay, $tx ) = @_;
-					$delay->data( tx => $tx );
-					if ( $tx->res->code == 200 ) {
-						$c->s3->delete_file( $former_filename, shift->begin );
-					} else {
-						$delay->pass;
-					}
-				},
-				sub {
-					my ( $delay ) = @_;
-					# Return response code from the put request.
-					# Not going to be concerned with the delete response.
-					return $self->$cb( $delay->data->{tx}->res->code == 200 ? $delay->data->{tx}->res : undef );
-				}
-			)->wait;
-		} else {
-			my $tx = $c->ua->put( $s3_object => $headers );
-			$c->s3->delete_file( $former_filename ) if $tx->res->code == 200;
+		unless ( $cb ) {
+			my $tx = $c->ua->get( $self->_object_url( $file ) => $headers );
 			return $tx->res->code == 200 ? $tx->res : undef;
 		}
+
+		$self->_loop->delay(
+			sub {
+				$c->ua->get( $self->_object_url( $file ) => $headers, shift->begin );
+			},
+			sub {
+				my $tx = pop;
+				return $self->$cb( $tx->res->code == 200 ? $tx->res : undef );
+			}
+		)->wait;
+	});
+
+	$app->helper( 's3.put_file' => sub {
+		my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
+		my ( $c, $file, $upload ) = @_;
+		my $content = $upload->asset->slurp;
+
+		my $headers = $self->_headers( 'PUT', $file, {
+			'content-length' => $upload->size,
+			'content-type' => $upload->headers->content_type,
+			'x-amz-content-sha256' => sha256_hex( $content )
+		});
+
+		return $c->ua->put( $self->_object_url( $file ) => $headers => $content )->res->code == 200 ? 'ok' : undef
+			unless $cb;
+
+		$self->_loop->delay(
+			sub {
+				$c->ua->put( $self->_object_url( $file ) => $headers => $content, shift->begin );
+			},
+			sub {
+				return $self->$cb( pop->res->code == 200 ? 'ok' : undef );
+			}
+		)->wait;
 	});
 
 	$app->helper( 's3.browser_policy' => sub {
@@ -194,17 +159,15 @@ sub register {
 			'x-amz-signature' => $self->_sign_the_string( $base64_policy ),
 		};
 	});
-
-	$app->helper( 's3.path' => sub { join '/', @_[ 1 .. $#_ ] });
 }
 
 sub _auth_header {
-	my ( $self, $method, $date, $filename, $raw_headers ) = @_;
+	my ( $self, $method, $date, $file, $raw_headers ) = @_;
 
 	my $headers = {};
 	map { $headers->{lc trim $_} = $raw_headers->{$_} } keys %$raw_headers;
 
-	my $string_to_sign = $self->_string_to_sign( $self->_canonical_request( $method, $filename, $headers ), $date );
+	my $string_to_sign = $self->_string_to_sign( $self->_canonical_request( $method, $file, $headers ), $date );
 
 	my $signature = $self->_sign_the_string( $string_to_sign, $self->{conf}->{access_key}, $date->to_ymd );
 
@@ -219,9 +182,9 @@ sub _bucket_path {
 }
 
 sub _canonical_request {
-	my ( $self, $method, $filename, $headers ) = @_;
+	my ( $self, $method, $file, $headers ) = @_;
 	my $canonical_request = $method . "\n";
-	$canonical_request .=  '/' . $filename . "\n";
+	$canonical_request .=  '/' . $file . "\n";
 	$canonical_request .= "\n";
 	$canonical_request .= $_ . ':' . $headers->{$_} . "\n" for sort keys %$headers;
 	$canonical_request .= "\n" . ( join ';', sort keys %$headers ) . "\n";
@@ -233,14 +196,18 @@ sub _credential {
 }
 
 sub _headers {
-	return {
-		date => $_[1]->to_string,
-		host => $_[0]->_bucket_path,
-		'x-amz-content-sha256' => sha256_hex( 'UNSIGNED-PAYLOAD' ),
-	};
+	my ( $self, $method, $file, $headers ) = @_;
+	my $date = Mojo::Date->new;
+	$headers->{date} = $date->to_string;
+	$headers->{host} = $self->_bucket_path;
+	$headers->{'x-amz-content-sha256'} = sha256_hex( 'UNSIGNED-PAYLOAD' ) unless defined $headers->{'x-amz-content-sha256'};
+	$headers->{authorization} = $self->_auth_header( $method, $date, $file, $headers );
+	return $headers;
 }
 
 sub _loop { $_[1] ? Mojo::IOLoop->singleton : $_[0]->ioloop }
+
+sub _object_url { $_[0]->{conf}->{protocol} . $_[0]->_bucket_path . '/' . $_[1] }
 
 sub _signing_key {
 	my $self = shift;
@@ -253,9 +220,7 @@ sub _signing_key {
 	);
 }
 
-sub _sign_the_string {
-	hmac_sha256_hex( $_[1], $_[0]->_signing_key );
-}
+sub _sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
 
 sub _string_to_sign {
 	my ( $self, $canonical_request, $date ) = @_;
@@ -276,7 +241,7 @@ Mojolicious::Plugin::S3Request - Mojolicious Plugin for basic S3 AWS4 requests.
 
 =head1 VERSION
 
-0.01_2
+0.02_1
 
 =head1 SOURCE REPOSITORY
 

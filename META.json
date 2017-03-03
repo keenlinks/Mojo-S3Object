@@ -26,8 +26,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Digest::SHA" : "5.96",
-            "Mojolicious" : "7.26",
+            "Mojolicious" : "6.00",
             "perl" : "5.008001"
          }
       },
@@ -41,10 +40,10 @@
    "provides" : {
       "Mojolicious::Plugin::S3Request" : {
          "file" : "lib/Mojolicious/Plugin/S3Request.pm",
-         "version" : "0.01_2"
+         "version" : "0.02_1"
       }
    },
    "release_status" : "testing",
-   "version" : "0.01_2",
+   "version" : "0.02_1",
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }

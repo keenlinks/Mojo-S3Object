@@ -1,6 +1,5 @@
 requires 'perl', '5.008001';
-requires 'Mojolicious', '7.26';
-requires 'Digest::SHA', '5.96';
+requires 'Mojolicious', '6.00';
 
 on 'configure' => sub {
     requires 'Module::Build::Tiny', '0.039';

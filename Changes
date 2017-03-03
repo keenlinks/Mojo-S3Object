@@ -1,5 +1,11 @@
 Revision history for Perl module Mojolicious-Plugin-S3Request
 
+0.02_1 2017-0.-03
+  - Created header provate sub
+  - Renamed helper move_file to copy_file and removed delete_file from copy_file.
+    S3 api does not have a move or delete with a copy.
+  - Refined non-blocking code.
+
 0.01_2 2017-02-28
   - Add some non-blocking code
 
