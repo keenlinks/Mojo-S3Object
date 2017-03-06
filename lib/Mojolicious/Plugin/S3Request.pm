@@ -50,7 +50,7 @@ sub register {
 		return $c->ua->put( $self->_object_url( $file ) => $headers )->res->code == 200 ? 'ok' : undef
 			unless $cb;
 
-		$self->_loop->delay(
+		$self->ioloop->delay(
 			sub {
 				$c->ua->put( $self->_object_url( $file ) => $headers, shift->begin );
 			},
@@ -69,7 +69,7 @@ sub register {
 		return $c->ua->delete( $self->_object_url( $file ) => $headers )->res->code == 204 ? 'ok' : undef
 			unless $cb;
 
-		$self->_loop->delay(
+		$self->ioloop->delay(
 			sub {
 				$c->ua->delete( $self->_object_url( $file ) => $headers, shift->begin );
 			},
@@ -90,7 +90,7 @@ sub register {
 			return $tx->res->code == 200 ? $tx->res : undef;
 		}
 
-		$self->_loop->delay(
+		$self->ioloop->delay(
 			sub {
 				$c->ua->get( $self->_object_url( $file ) => $headers, shift->begin );
 			},
@@ -115,7 +115,7 @@ sub register {
 		return $c->ua->put( $self->_object_url( $file ) => $headers => $content )->res->code == 200 ? 'ok' : undef
 			unless $cb;
 
-		$self->_loop->delay(
+		$self->ioloop->delay(
 			sub {
 				$c->ua->put( $self->_object_url( $file ) => $headers => $content, shift->begin );
 			},
@@ -204,8 +204,6 @@ sub _headers {
 	$headers->{authorization} = $self->_auth_header( $method, $date, $file, $headers );
 	return $headers;
 }
-
-sub _loop { $_[1] ? Mojo::IOLoop->singleton : $_[0]->ioloop }
 
 sub _object_url { $_[0]->{conf}->{protocol} . $_[0]->_bucket_path . '/' . $_[1] }
 
