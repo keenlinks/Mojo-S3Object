@@ -4,14 +4,14 @@ use Test::More;
 use Mojolicious::Lite;
 use Test::Mojo;
 
-plugin 'Mojo::S3Object' => {
-  access_key => 'secret_access_key',
-  access_key_id => 'access_key_id',
-  bucket => 'my_bucket'
-};
+#plugin 'Mojo::S3Object' => {
+#  access_key => 'secret_access_key',
+#  access_key_id => 'access_key_id',
+#  bucket => 'my_bucket'
+#};
 
 my $t = Test::Mojo->new;
-my $c = $t->app->build_controller;
+#my $c = $t->app->build_controller;
 
 ok( 1 == 1 );
 
