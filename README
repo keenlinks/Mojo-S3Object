@@ -1,0 +1,27 @@
+NAME
+
+    Mojo::S3Object - Mojo interface to S3 objects.
+
+VERSION
+
+    0.02_2
+
+SOURCE REPOSITORY
+
+    http://github.com/keenlinks/Mojo-S3Objects
+
+AUTHOR
+
+    Scott Kiehn <sk.keenlinks@gmail.com>
+
+COPYRIGHT
+
+    Copyright 2017 - Scott Kiehn
+
+LICENSE
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+SEE ALSO
+

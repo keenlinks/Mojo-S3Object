@@ -1,5 +1,5 @@
 ---
-abstract: 'Mojolicious Plugin for basic S3 AWS4 requests.'
+abstract: 'Mojo interface to S3 objects.'
 author:
   - 'Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>'
 build_requires:
@@ -8,18 +8,18 @@ build_requires:
 configure_requires:
   Module::Build::Tiny: '0.039'
 dynamic_config: 0
-generated_by: 'App::ModuleBuildTiny version 0.018, CPAN::Meta::Converter version 2.150005'
+generated_by: 'App::ModuleBuildTiny version 0.021, CPAN::Meta::Converter version 2.150005'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: '1.4'
-name: Mojolicious-Plugin-S3Request
+name: Mojo-S3Object
 provides:
-  Mojolicious::Plugin::S3Request:
-    file: lib/Mojolicious/Plugin/S3Request.pm
-    version: 0.02_1
+  Mojo::S3Object:
+    file: lib/Mojo/S3Object.pm
+    version: 0.02_2
 requires:
   Mojolicious: '6.00'
   perl: '5.008001'
-version: 0.02_1
+version: 0.02_2
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

@@ -1,10 +1,10 @@
 {
-   "abstract" : "Mojolicious Plugin for basic S3 AWS4 requests.",
+   "abstract" : "Mojo interface to S3 objects.",
    "author" : [
       "Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "App::ModuleBuildTiny version 0.018",
+   "generated_by" : "App::ModuleBuildTiny version 0.021",
    "license" : [
       "perl_5"
    ],
@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "Mojolicious-Plugin-S3Request",
+   "name" : "Mojo-S3Object",
    "prereqs" : {
       "configure" : {
          "requires" : {
@@ -21,7 +21,7 @@
       },
       "develop" : {
          "requires" : {
-            "App::ModuleBuildTiny" : "0.018"
+            "App::ModuleBuildTiny" : "0.021"
          }
       },
       "runtime" : {
@@ -38,12 +38,12 @@
       }
    },
    "provides" : {
-      "Mojolicious::Plugin::S3Request" : {
-         "file" : "lib/Mojolicious/Plugin/S3Request.pm",
-         "version" : "0.02_1"
+      "Mojo::S3Object" : {
+         "file" : "lib/Mojo/S3Object.pm",
+         "version" : "0.02_2"
       }
    },
    "release_status" : "testing",
-   "version" : "0.02_1",
-   "x_serialization_backend" : "JSON::PP version 2.27300"
+   "version" : "0.02_2",
+   "x_serialization_backend" : "JSON::PP version 2.27300_01"
 }
