@@ -1,7 +1,18 @@
-Revision history for Perl module Mojolicious-Plugin-S3Request
+Revision history for Perl module Mojo-S3Object
 
-0.02_1 2017-0.-03
-  - Created header provate sub
+0.02_2 2017-05-18
+  - Changed from a specific Mojolicious plugin
+    to a Mojo namespaced module (can be used 
+    outside a Mojolicious app)
+  - Renamed to S3Object as it does not
+    handle bucket functions, just the
+    objects.
+  - Renamed methods (removed "_file" from each).
+  - Created distinct "upload" function (uses the "get"
+    function, but passes in a Mojo::Upload object.
+
+0.02_1 2017-03-03
+  - Created header private sub
   - Renamed helper move_file to copy_file and removed delete_file from copy_file.
     S3 api does not have a move or delete with a copy.
   - Refined non-blocking code.
