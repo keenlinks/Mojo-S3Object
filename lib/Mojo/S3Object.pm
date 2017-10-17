@@ -9,7 +9,7 @@ use Mojo::JSON qw(encode_json);
 use Mojo::UserAgent;
 use Mojo::Util qw(b64_encode monkey_patch trim);
 
-our $VERSION = '0.02_2';
+our $VERSION = '0.02_3';
 
 # Required
 has access_key => sub { die 'Parameter "access_key" is mandatory in the constructor.' };
@@ -72,7 +72,7 @@ sub browser_policy {
 		'content-type' => $params->{filetype},
 		success_action_status => '200',
 		policy => $base64_policy,
-		'x-amz-signature' => $self->_sign_the_string( $base64_policy ),
+		'x-amz-signature' => $self->sign_the_string( $base64_policy ),
 	};
 }
 
@@ -162,6 +162,8 @@ sub put {
 	)->wait;
 }
 
+sub sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
+
 sub upload {
 	my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 	my ( $self, $s3_object_name, $upload ) = @_;
@@ -179,7 +181,7 @@ sub _auth_header {
 
 	my $string_to_sign = $self->_string_to_sign( $self->_canonical_request( $method, $s3_object_name, $headers ), $date );
 
-	my $signature = $self->_sign_the_string( $string_to_sign, $self->access_key, $date->to_ymd );
+	my $signature = $self->sign_the_string( $string_to_sign, $self->access_key, $date->to_ymd );
 
 	my $auth = $self->aws_auth_alg;
 	$auth .= ' Credential=' . $self->_credential( $date ) . ',';
@@ -225,9 +227,6 @@ sub _signing_key {
 		)
 	);
 }
-
-sub _sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
-sub sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
 
 sub _string_to_sign {
 	my ( $self, $canonical_request, $date ) = @_;

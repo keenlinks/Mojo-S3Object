@@ -1,5 +1,8 @@
 Revision history for Perl module Mojo-S3Object
 
+0.02_3 2017-10-17
+  - Changed private method to public (sign_the_string).
+
 0.02_2 2017-05-18
   - Changed from a specific Mojolicious plugin
     to a Mojo namespaced module (can be used 

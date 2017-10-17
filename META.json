@@ -4,7 +4,7 @@
       "Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "App::ModuleBuildTiny version 0.021",
+   "generated_by" : "App::ModuleBuildTiny version 0.022",
    "license" : [
       "perl_5"
    ],
@@ -21,7 +21,7 @@
       },
       "develop" : {
          "requires" : {
-            "App::ModuleBuildTiny" : "0.021"
+            "App::ModuleBuildTiny" : "0.022"
          }
       },
       "runtime" : {
@@ -40,10 +40,10 @@
    "provides" : {
       "Mojo::S3Object" : {
          "file" : "lib/Mojo/S3Object.pm",
-         "version" : "0.02_2"
+         "version" : "0.02_3"
       }
    },
    "release_status" : "testing",
-   "version" : "0.02_2",
+   "version" : "0.02_3",
    "x_serialization_backend" : "JSON::PP version 2.27300_01"
 }
