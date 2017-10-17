@@ -227,6 +227,7 @@ sub _signing_key {
 }
 
 sub _sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
+sub sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
 
 sub _string_to_sign {
 	my ( $self, $canonical_request, $date ) = @_;
