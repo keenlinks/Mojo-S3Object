@@ -17,9 +17,9 @@ name: Mojo-S3Object
 provides:
   Mojo::S3Object:
     file: lib/Mojo/S3Object.pm
-    version: 0.02_4
+    version: 0.02_5
 requires:
   Mojolicious: '6.00'
   perl: '5.008001'
-version: 0.02_4
+version: 0.02_5
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

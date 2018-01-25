@@ -40,10 +40,10 @@
    "provides" : {
       "Mojo::S3Object" : {
          "file" : "lib/Mojo/S3Object.pm",
-         "version" : "0.02_4"
+         "version" : "0.02_5"
       }
    },
    "release_status" : "testing",
-   "version" : "0.02_4",
+   "version" : "0.02_5",
    "x_serialization_backend" : "JSON::PP version 2.27300_01"
 }

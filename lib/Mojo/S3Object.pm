@@ -7,9 +7,9 @@ use Mojo::Date;
 use Mojo::IOLoop;
 use Mojo::JSON qw(encode_json);
 use Mojo::UserAgent;
-use Mojo::Util qw(b64_encode monkey_patch trim);
+use Mojo::Util qw(b64_encode monkey_patch slugify);
 
-our $VERSION = '0.02_4';
+our $VERSION = '0.02_5';
 
 # Required
 has access_key => sub { croak 'Parameter "access_key" is mandatory in the constructor.' };
@@ -25,6 +25,7 @@ has aws_auth_alg => 'AWS4-HMAC-SHA256';
 has aws_host => 's3.amazonaws.com';
 has aws_request => 'aws4_request';
 has aws_service => 's3';
+has policy_exporation => 900; # 15 minutes
 
 has bucket_path => sub { $_[0]->bucket . '.' . $_[0]->aws_host };
 has bucket_url => sub { $_[0]->protocol . $_[0]->bucket_path };
@@ -47,7 +48,7 @@ sub browser_policy {
 	my $credential = $self->_credential( $date );
 
 	my $policy = encode_json({
-		expiration => Mojo::Date->new( time + 900 )->to_datetime,
+		expiration => Mojo::Date->new( time + $self->policy_exporation )->to_datetime,
 		conditions => [
 			{bucket => $self->bucket},
 			{'x-amz-algorithm' => $self->aws_auth_alg},
@@ -138,7 +139,7 @@ sub get {
 
 sub put {
 	my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-	my ( $self, $s3_object_name, $asset, $meta_data ) = @_;
+	my ( $self, $s3_object_name, $asset, $meta_data, $user_defined ) = @_;
 
 	croak 'You want to use the "upload" method. "Put" method does not use Mojo::Upload.' if ref $asset eq 'Mojo::Upload';
 
@@ -147,9 +148,17 @@ sub put {
 
 	if ( defined $meta_data ) {
 		if ( ref $meta_data eq 'HASH' ) {
-			map { $prep->{lc trim $_} = $meta_data->{$_} } keys %$meta_data;
+			map { $prep->{ slugify $_ } = $meta_data->{$_} } keys %$meta_data;
 		} else {
 			carp 'Metadata not applied. Please pass metadata as a hash reference.';
+		}
+	}
+
+	if ( defined $user_defined ) {
+		if ( ref $user_defined eq 'HASH' ) {
+			map { $prep->{'x-amz-meta-' . ( slugify $_ )} = $user_defined->{$_} } keys %$user_defined;
+		} else {
+			carp 'User-defined not applied. Please pass data as a hash reference.';
 		}
 	}
 
@@ -173,18 +182,20 @@ sub sign_the_string { hmac_sha256_hex( $_[1], $_[0]->_signing_key ) }
 
 sub upload {
 	my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-	my ( $self, $s3_object_name, $upload ) = @_;
+	my ( $self, $s3_object_name, $upload, $meta_data, $user_defined ) = @_;
 
 	croak 'You want to use the "put" method. "Upload" method for use with Mojo::Upload.' unless ref $upload eq 'Mojo::Upload';
 
-	return $self->put( $s3_object_name, $upload->asset, $upload->headers->content_type, $cb );
+	$meta_data->{'content-type'} = $upload->headers->content_type;
+
+	return $self->put( $s3_object_name, $upload->asset, $meta_data, $user_defined, $cb );
 }
 
 sub _auth_header {
 	my ( $self, $method, $date, $s3_object_name, $raw_headers ) = @_;
 
 	my $headers = {};
-	map { $headers->{lc trim $_} = $raw_headers->{$_} } keys %$raw_headers;
+	map { $headers->{ slugify $_ } = $raw_headers->{$_} } keys %$raw_headers;
 
 	my $string_to_sign = $self->_string_to_sign( $self->_canonical_request( $method, $s3_object_name, $headers ), $date );
 
@@ -254,7 +265,7 @@ Mojo::S3Object - Mojo interface to S3 objects.
 
 =head1 VERSION
 
-0.02_4
+0.02_5
 
 =head1 SOURCE REPOSITORY
 

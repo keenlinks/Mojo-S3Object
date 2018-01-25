@@ -1,7 +1,11 @@
 Revision history for Perl module Mojo-S3Object
 
+0.02_5 2018-01-25
+  - Added ability to add object user-defined metadata headers to the "put" method.
+  - Bug fixed "update" method as it uses the "put" method.
+
 0.02_4 2018-01-25
-  - Added ability to add object metadata headers to the "put" helper.
+  - Added ability to add object metadata headers to the "put" method.
 
 0.02_3 2017-10-17
   - Changed private method to public (sign_the_string).
