@@ -9,12 +9,12 @@ use Mojo::JSON qw(encode_json);
 use Mojo::UserAgent;
 use Mojo::Util qw(b64_encode monkey_patch trim);
 
-our $VERSION = '0.02_3';
+our $VERSION = '0.02_4';
 
 # Required
-has access_key => sub { die 'Parameter "access_key" is mandatory in the constructor.' };
-has access_key_id => sub { die 'Parameter "access_key_id" is mandatory in the constructor.' };
-has bucket => sub { die 'Parameter "bucket" is mandatory in the constructor.' };
+has access_key => sub { croak 'Parameter "access_key" is mandatory in the constructor.' };
+has access_key_id => sub { croak 'Parameter "access_key_id" is mandatory in the constructor.' };
+has bucket => sub { croak 'Parameter "bucket" is mandatory in the constructor.' };
 
 # Defaults if not provided
 has protocol => sub { 'https://' };
@@ -138,13 +138,20 @@ sub get {
 
 sub put {
 	my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
-	my ( $self, $s3_object_name, $asset, $content_type ) = @_;
+	my ( $self, $s3_object_name, $asset, $meta_data ) = @_;
 
 	croak 'You want to use the "upload" method. "Put" method does not use Mojo::Upload.' if ref $asset eq 'Mojo::Upload';
 
 	my $content = $asset->slurp;
 	my $prep = { 'content-length' => $asset->size, 'x-amz-content-sha256' => sha256_hex( $content ) };
-	$prep->{'content-type'} = $content_type if $content_type;
+
+	if ( defined $meta_data ) {
+		if ( ref $meta_data eq 'HASH' ) {
+			map { $prep->{lc trim $_} = $meta_data->{$_} } keys %$meta_data;
+		} else {
+			carp 'User-defined metadata not applied. Please pass metadata as a hash reference.';
+		}
+	}
 
 	my $headers = $self->_headers( 'PUT', $s3_object_name, $prep );
 
@@ -247,7 +254,7 @@ Mojo::S3Object - Mojo interface to S3 objects.
 
 =head1 VERSION
 
-0.02_2
+0.02_4
 
 =head1 SOURCE REPOSITORY
 
@@ -259,7 +266,7 @@ Scott Kiehn E<lt>sk.keenlinks@gmail.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2017 - Scott Kiehn
+Copyright 2018 - Scott Kiehn
 
 =head1 LICENSE
 
