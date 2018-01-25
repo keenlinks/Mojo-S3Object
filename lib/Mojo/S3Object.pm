@@ -149,7 +149,7 @@ sub put {
 		if ( ref $meta_data eq 'HASH' ) {
 			map { $prep->{lc trim $_} = $meta_data->{$_} } keys %$meta_data;
 		} else {
-			carp 'User-defined metadata not applied. Please pass metadata as a hash reference.';
+			carp 'Metadata not applied. Please pass metadata as a hash reference.';
 		}
 	}
 
